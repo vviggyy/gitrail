@@ -1,36 +1,42 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# gitrail
 
-## Getting Started
+Interactive 3D visualization of git repository commit graphs. Paste any public GitHub repo URL and explore its history as a navigable 3D scene — like a subway map for your codebase.
 
-First, run the development server:
+## How it works
+
+- **X-axis** — Time: commits flow left to right chronologically
+- **Y-axis** — Elevation: feature branches arc upward, main stays at ground level
+- **Z-axis** — Branches: each branch gets its own depth lane
+
+Commit nodes are colored by contributor and sized by number of files changed. Edges connect parent-child commits, with merge commits shown as curved arcs between branches.
+
+## Getting started
 
 ```bash
+git clone https://github.com/vviggyy/gitrail.git
+cd gitrail
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000), paste a public GitHub repo URL (e.g. `github.com/expressjs/express`), and explore.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Interactions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Orbit** — click and drag to rotate the scene
+- **Zoom** — scroll to zoom in/out
+- **Pan** — right-click drag to pan
+- **Hover** — hover over a commit node to see details (hash, author, message, date)
+- **Click** — click a node to pin its details
+- **Branch filter** — toggle branches on/off in the sidebar
 
-## Learn More
+## Tech stack
 
-To learn more about Next.js, take a look at the following resources:
+- Next.js (React, TypeScript)
+- React Three Fiber + drei (Three.js)
+- Octokit (GitHub API)
+- Tailwind CSS
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT
