@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { Canvas } from "@react-three/fiber";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Canvas, useThree } from "@react-three/fiber";
 import { OrbitControls, Grid, Text } from "@react-three/drei";
+import * as THREE from "three";
 import { RepoGraph, DAGNode } from "@/lib/types";
 import CommitNode from "./CommitNode";
 import CommitEdge from "./CommitEdge";
@@ -12,7 +13,38 @@ interface SceneProps {
   visibleBranches: Set<string>;
 }
 
-export default function Scene({ graph, visibleBranches }: SceneProps) {
+// Inner component to handle camera fitting after mount
+function CameraRig({ nodes }: { nodes: DAGNode[] }) {
+  const { camera } = useThree();
+  const fitted = useRef(false);
+
+  useEffect(() => {
+    if (nodes.length === 0 || fitted.current) return;
+    fitted.current = true;
+
+    const xs = nodes.map((n) => n.x);
+    const ys = nodes.map((n) => n.y);
+    const zs = nodes.map((n) => n.z);
+
+    const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+    const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+    const cz = (Math.min(...zs) + Math.max(...zs)) / 2;
+
+    const rangeX = Math.max(...xs) - Math.min(...xs);
+    const rangeZ = Math.max(...zs) - Math.min(...zs);
+    const maxRange = Math.max(rangeX, rangeZ, 10);
+
+    // Position camera looking down at an angle
+    const dist = maxRange * 0.8;
+    camera.position.set(cx + dist * 0.3, cy + dist * 0.5, cz + dist * 0.6);
+    camera.lookAt(cx, cy, cz);
+    camera.updateProjectionMatrix();
+  }, [nodes, camera]);
+
+  return null;
+}
+
+function SceneContent({ graph, visibleBranches }: SceneProps) {
   const [selected, setSelected] = useState<DAGNode | null>(null);
 
   const nodeMap = useMemo(() => {
@@ -38,49 +70,30 @@ export default function Scene({ graph, visibleBranches }: SceneProps) {
     [graph.edges, nodeMap, visibleBranches]
   );
 
-  // Camera target: center of the graph
   const center = useMemo(() => {
-    if (filteredNodes.length === 0) return [0, 0, 0] as const;
+    if (filteredNodes.length === 0) return new THREE.Vector3(0, 0, 0);
     const xs = filteredNodes.map((n) => n.x);
     const ys = filteredNodes.map((n) => n.y);
     const zs = filteredNodes.map((n) => n.z);
-    return [
+    return new THREE.Vector3(
       (Math.min(...xs) + Math.max(...xs)) / 2,
       (Math.min(...ys) + Math.max(...ys)) / 2,
-      (Math.min(...zs) + Math.max(...zs)) / 2,
-    ] as const;
+      (Math.min(...zs) + Math.max(...zs)) / 2
+    );
   }, [filteredNodes]);
 
-  const cameraDistance = Math.max(filteredNodes.length * 1.2, 15);
-
   return (
-    <Canvas
-      camera={{
-        position: [center[0] + cameraDistance * 0.5, cameraDistance * 0.4, center[2] + cameraDistance * 0.6],
-        fov: 50,
-        near: 0.1,
-        far: 2000,
-      }}
-      className="w-full h-full"
-      onPointerMissed={() => setSelected(null)}
-    >
-      <ambientLight intensity={0.4} />
+    <>
+      <color attach="background" args={["#030712"]} />
+      <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 5]} intensity={0.8} />
       <pointLight position={[-10, -10, -5]} intensity={0.3} />
 
-      {/* Axis labels */}
-      <Text
-        position={[center[0], -1.5, center[2] - 2]}
-        fontSize={0.6}
-        color="#6b7280"
-        anchorX="center"
-      >
-        time →
-      </Text>
+      <CameraRig nodes={filteredNodes} />
 
       <Grid
         args={[200, 200]}
-        position={[center[0], -1, center[2]]}
+        position={[center.x, -1, center.z]}
         cellSize={2}
         cellColor="#1f2937"
         sectionSize={10}
@@ -104,7 +117,7 @@ export default function Scene({ graph, visibleBranches }: SceneProps) {
           </Text>
         ))}
 
-      {/* Edges first (behind nodes) */}
+      {/* Edges */}
       {filteredEdges.map((edge) => {
         const from = nodeMap.get(edge.from);
         const to = nodeMap.get(edge.to);
@@ -130,11 +143,26 @@ export default function Scene({ graph, visibleBranches }: SceneProps) {
       ))}
 
       <OrbitControls
-        target={[center[0], center[1], center[2]]}
+        target={[center.x, center.y, center.z]}
         enableDamping
         dampingFactor={0.1}
         maxDistance={500}
       />
-    </Canvas>
+    </>
+  );
+}
+
+export default function Scene({ graph, visibleBranches }: SceneProps) {
+  return (
+    <div style={{ position: "absolute", inset: 0 }}>
+      <Canvas
+        camera={{ fov: 50, near: 0.1, far: 2000, position: [20, 15, 20] }}
+        onPointerMissed={() => {}}
+        gl={{ antialias: true }}
+        style={{ background: "#030712" }}
+      >
+        <SceneContent graph={graph} visibleBranches={visibleBranches} />
+      </Canvas>
+    </div>
   );
 }
