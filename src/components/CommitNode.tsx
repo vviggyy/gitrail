@@ -16,8 +16,8 @@ export default function CommitNode({ node, onSelect, selected }: CommitNodeProps
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
 
-  const baseSize = 0.25 + Math.min(node.commit.filesChanged * 0.06, 0.45);
-  const scale = hovered || selected ? 1.3 : 1;
+  const baseSize = 0.55 + Math.min(node.commit.filesChanged * 0.08, 0.35);
+  const scale = hovered || selected ? 1.25 : 1;
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -45,7 +45,7 @@ export default function CommitNode({ node, onSelect, selected }: CommitNodeProps
         onPointerOut={handlePointerOut}
         onClick={handleClick}
       >
-        <cylinderGeometry args={[baseSize, baseSize, 0.12, 32]} />
+        <cylinderGeometry args={[baseSize, baseSize, 0.18, 32]} />
         <meshStandardMaterial
           color={node.color}
           roughness={0.6}

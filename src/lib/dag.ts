@@ -106,7 +106,7 @@ export function buildGraph(
 
   // Grid-snapped spacing — every node sits on a grid intersection
   const GRID_CELL = 2; // matches the grid cellSize in Scene
-  const LANE_SPACING = 3; // Z gap per branch lane (snapped to grid)
+  const LANE_SPACING = 4; // Z gap per branch lane (multiple of GRID_CELL)
 
   // Build nodes — all positions land on grid intersections
   const nodes: DAGNode[] = sorted.map((commit, i) => {

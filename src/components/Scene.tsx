@@ -107,7 +107,7 @@ function SceneContent({ graph, visibleBranches }: SceneProps) {
         .map((branch, i) => (
           <Text
             key={branch}
-            position={[-3, 0, i * 3]}
+            position={[-3, 0, i * 4]}
             fontSize={0.4}
             color="#737373"
             anchorX="right"
