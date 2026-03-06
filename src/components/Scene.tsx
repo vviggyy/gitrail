@@ -13,7 +13,6 @@ interface SceneProps {
   visibleBranches: Set<string>;
 }
 
-// Inner component to handle camera fitting after mount
 function CameraRig({ nodes }: { nodes: DAGNode[] }) {
   const { camera } = useThree();
   const fitted = useRef(false);
@@ -34,7 +33,6 @@ function CameraRig({ nodes }: { nodes: DAGNode[] }) {
     const rangeZ = Math.max(...zs) - Math.min(...zs);
     const maxRange = Math.max(rangeX, rangeZ, 10);
 
-    // Position camera looking down at an angle
     const dist = maxRange * 0.8;
     camera.position.set(cx + dist * 0.3, cy + dist * 0.5, cz + dist * 0.6);
     camera.lookAt(cx, cy, cz);
@@ -84,21 +82,22 @@ function SceneContent({ graph, visibleBranches }: SceneProps) {
 
   return (
     <>
-      <color attach="background" args={["#030712"]} />
-      <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={0.8} />
-      <pointLight position={[-10, -10, -5]} intensity={0.3} />
+      <color attach="background" args={["#f5f5f5"]} />
+      <ambientLight intensity={0.8} />
+      <directionalLight position={[10, 10, 5]} intensity={0.6} />
+      <pointLight position={[-10, -10, -5]} intensity={0.2} />
 
       <CameraRig nodes={filteredNodes} />
 
+      {/* Primary grid — cell lines */}
       <Grid
         args={[200, 200]}
-        position={[center.x, -1, center.z]}
+        position={[center.x, -0.01, center.z]}
         cellSize={2}
-        cellColor="#1f2937"
+        cellColor="#d4d4d4"
         sectionSize={10}
-        sectionColor="#374151"
-        fadeDistance={100}
+        sectionColor="#a3a3a3"
+        fadeDistance={120}
         infiniteGrid
       />
 
@@ -110,8 +109,9 @@ function SceneContent({ graph, visibleBranches }: SceneProps) {
             key={branch}
             position={[-3, 0, i * 3]}
             fontSize={0.4}
-            color="#9ca3af"
+            color="#737373"
             anchorX="right"
+            font={undefined}
           >
             {branch}
           </Text>
@@ -159,7 +159,7 @@ export default function Scene({ graph, visibleBranches }: SceneProps) {
         camera={{ fov: 50, near: 0.1, far: 2000, position: [20, 15, 20] }}
         onPointerMissed={() => {}}
         gl={{ antialias: true }}
-        style={{ background: "#030712" }}
+        style={{ background: "#f5f5f5" }}
       >
         <SceneContent graph={graph} visibleBranches={visibleBranches} />
       </Canvas>

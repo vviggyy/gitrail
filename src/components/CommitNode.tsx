@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Sphere } from "@react-three/drei";
 import { ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import { DAGNode } from "@/lib/types";
@@ -17,8 +16,8 @@ export default function CommitNode({ node, onSelect, selected }: CommitNodeProps
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
 
-  const baseSize = 0.2 + Math.min(node.commit.filesChanged * 0.05, 0.4);
-  const scale = hovered || selected ? 1.4 : 1;
+  const baseSize = 0.25 + Math.min(node.commit.filesChanged * 0.06, 0.45);
+  const scale = hovered || selected ? 1.3 : 1;
 
   const handlePointerOver = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
@@ -38,22 +37,31 @@ export default function CommitNode({ node, onSelect, selected }: CommitNodeProps
 
   return (
     <group position={[node.x, node.y, node.z]}>
-      <Sphere
+      {/* Flat cylindrical node — industrial / schematic feel */}
+      <mesh
         ref={meshRef}
-        args={[baseSize, 16, 16]}
         scale={scale}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
         onClick={handleClick}
       >
+        <cylinderGeometry args={[baseSize, baseSize, 0.12, 32]} />
         <meshStandardMaterial
           color={node.color}
+          roughness={0.6}
+          metalness={0.4}
           emissive={node.color}
-          emissiveIntensity={hovered || selected ? 0.4 : 0.1}
-          roughness={0.4}
-          metalness={0.3}
+          emissiveIntensity={hovered || selected ? 0.3 : 0.05}
         />
-      </Sphere>
+      </mesh>
+      {/* Thin ring outline */}
+      <mesh scale={scale} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[baseSize * 0.95, baseSize * 1.1, 32]} />
+        <meshBasicMaterial
+          color={hovered || selected ? "#171717" : "#525252"}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
       {(hovered || selected) && <CommitTooltip node={node} pinned={selected} />}
     </group>
   );

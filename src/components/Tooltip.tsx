@@ -24,15 +24,30 @@ export default function CommitTooltip({ node, pinned }: TooltipProps) {
       position={[0, 0.6, 0]}
       style={{ pointerEvents: pinned ? "auto" : "none" }}
     >
-      <div className="bg-gray-900/95 backdrop-blur text-white text-xs rounded-lg px-3 py-2 w-64 shadow-xl border border-gray-700/50">
-        <div className="font-mono text-yellow-400 mb-1">
+      <div
+        style={{
+          background: "rgba(255,255,255,0.96)",
+          backdropFilter: "blur(8px)",
+          color: "#1a1a1a",
+          fontSize: "11px",
+          borderRadius: "6px",
+          padding: "8px 12px",
+          width: "256px",
+          boxShadow: "0 2px 12px rgba(0,0,0,0.12)",
+          border: "1px solid #d4d4d4",
+          fontFamily: "ui-monospace, monospace",
+        }}
+      >
+        <div style={{ color: "#b45309", fontWeight: 600, marginBottom: 4 }}>
           {commit.sha.slice(0, 8)}
         </div>
-        <div className="font-medium mb-1 leading-tight">{commit.message}</div>
-        <div className="text-gray-400 space-y-0.5">
+        <div style={{ fontWeight: 500, marginBottom: 4, lineHeight: 1.3 }}>
+          {commit.message}
+        </div>
+        <div style={{ color: "#737373", lineHeight: 1.5 }}>
           <div>{commit.author}</div>
           <div>{date}</div>
-          <div className="text-blue-400">{branch}</div>
+          <div style={{ color: "#2563eb" }}>{branch}</div>
           {commit.filesChanged > 0 && (
             <div>{commit.filesChanged} files changed</div>
           )}

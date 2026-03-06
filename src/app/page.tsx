@@ -6,7 +6,6 @@ import RepoInput from "@/components/RepoInput";
 import BranchFilter from "@/components/BranchFilter";
 import { RepoGraph } from "@/lib/types";
 
-// Dynamic import to avoid SSR issues with Three.js
 const Scene = dynamic(() => import("@/components/Scene"), { ssr: false });
 
 export default function Home() {
@@ -55,11 +54,11 @@ export default function Home() {
   );
 
   return (
-    <div className="h-screen w-screen bg-gray-950 text-white flex flex-col overflow-hidden">
+    <div className="h-screen w-screen bg-neutral-100 text-neutral-900 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-3 border-b border-gray-800/50 shrink-0">
-        <h1 className="text-lg font-semibold tracking-tight">
-          <span className="text-blue-400">git</span>rail
+      <header className="flex items-center justify-between px-6 py-3 border-b border-neutral-300 shrink-0 bg-white">
+        <h1 className="text-lg font-semibold tracking-tight font-mono">
+          <span className="text-neutral-400">git</span>rail
         </h1>
         <div className="flex items-center gap-4">
           <RepoInput onSubmit={handleSubmit} loading={loading} />
@@ -72,16 +71,16 @@ export default function Home() {
         {!graph && !loading && !error && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center space-y-3">
-              <div className="text-4xl font-bold">
-                <span className="text-blue-400">git</span>rail
+              <div className="text-4xl font-bold font-mono">
+                <span className="text-neutral-400">git</span>rail
               </div>
-              <p className="text-gray-500 text-sm max-w-md">
+              <p className="text-neutral-500 text-sm max-w-md">
                 Paste a public GitHub repo URL to visualize its commit graph in 3D.
                 <br />
                 Try{" "}
                 <button
                   onClick={() => handleSubmit("github.com/expressjs/express")}
-                  className="text-blue-400 hover:underline"
+                  className="text-blue-600 hover:underline"
                 >
                   expressjs/express
                 </button>{" "}
@@ -95,8 +94,8 @@ export default function Home() {
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex items-center gap-3">
-              <div className="w-5 h-5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
-              <span className="text-gray-400 text-sm">Fetching commit history...</span>
+              <div className="w-5 h-5 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
+              <span className="text-neutral-500 text-sm">Fetching commit history...</span>
             </div>
           </div>
         )}
@@ -104,7 +103,7 @@ export default function Home() {
         {/* Error */}
         {error && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-red-900/30 border border-red-800 rounded-lg px-4 py-3 text-sm text-red-300 max-w-md">
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-700 max-w-md">
               {error}
             </div>
           </div>
@@ -125,7 +124,7 @@ export default function Home() {
             </div>
 
             {/* Stats */}
-            <div className="absolute bottom-4 left-4 text-xs text-gray-500 font-mono">
+            <div className="absolute bottom-4 left-4 text-xs text-neutral-400 font-mono">
               {nodeCount} commits &middot; {graph.branches.length} branches
             </div>
           </>

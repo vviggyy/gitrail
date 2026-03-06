@@ -25,12 +25,12 @@ export default function RepoInput({ onSubmit, loading }: RepoInputProps) {
         onChange={(e) => setValue(e.target.value)}
         placeholder="github.com/owner/repo"
         disabled={loading}
-        className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 text-sm font-mono disabled:opacity-50"
+        className="flex-1 bg-white border border-neutral-300 rounded-lg px-4 py-2.5 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:border-neutral-500 focus:ring-1 focus:ring-neutral-500 text-sm font-mono disabled:opacity-50"
       />
       <button
         type="submit"
         disabled={loading || !value.trim()}
-        className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors"
+        className="bg-neutral-800 hover:bg-neutral-700 disabled:bg-neutral-200 disabled:text-neutral-400 text-white px-5 py-2.5 rounded-lg text-sm font-medium font-mono transition-colors"
       >
         {loading ? "Loading..." : "Visualize"}
       </button>

@@ -7,7 +7,8 @@ function authorColor(name: string): string {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
   const hue = ((hash % 360) + 360) % 360;
-  return `hsl(${hue}, 70%, 60%)`;
+  // Darker saturation/lightness so colors read well on white background
+  return `hsl(${hue}, 65%, 45%)`;
 }
 
 // Assign each commit to its "primary" branch
@@ -103,28 +104,20 @@ export function buildGraph(
   const branchZIndex = new Map<string, number>();
   branchNames.forEach((name, i) => branchZIndex.set(name, i));
 
-  const SPACING_X = 2;
-  const SPACING_Z = 3;
+  // Grid-snapped spacing — every node sits on a grid intersection
+  const GRID_CELL = 2; // matches the grid cellSize in Scene
+  const LANE_SPACING = 3; // Z gap per branch lane (snapped to grid)
 
-  // Build nodes
+  // Build nodes — all positions land on grid intersections
   const nodes: DAGNode[] = sorted.map((commit, i) => {
     const branch = branchAssignment.get(commit.sha) || branchNames[0];
     const zIdx = branchZIndex.get(branch) || 0;
-    const isMerge = commit.parents.length > 1;
-
-    // Y: main branch at 0, others arc slightly upward
-    // Merge commits dip back toward 0
-    let y = 0;
-    if (zIdx > 0) {
-      y = 0.8 + zIdx * 0.3;
-      if (isMerge) y *= 0.3; // pull merges closer to main line
-    }
 
     return {
       commit,
-      x: i * SPACING_X,
-      y,
-      z: zIdx * SPACING_Z,
+      x: i * GRID_CELL,
+      y: 0, // flat on the grid plane
+      z: zIdx * LANE_SPACING,
       branch,
       color: authorColor(commit.author),
     };
