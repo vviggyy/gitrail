@@ -1,7 +1,7 @@
 import { Octokit } from "octokit";
 import { CommitData, BranchData } from "./types";
 
-const octokit = new Octokit();
+const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
 export function parseRepoUrl(url: string): { owner: string; repo: string } | null {
   // Handle formats: github.com/owner/repo, https://github.com/owner/repo, owner/repo
