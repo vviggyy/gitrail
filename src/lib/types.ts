@@ -37,3 +37,10 @@ export interface RepoRequest {
   owner: string;
   repo: string;
 }
+
+export interface RepoPageResponse {
+  commits: CommitData[];
+  branches: BranchData[];
+  hasMore: boolean;
+  page: number;
+}

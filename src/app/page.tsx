@@ -4,31 +4,82 @@ import { useState, useCallback, useMemo } from "react";
 import dynamic from "next/dynamic";
 import RepoInput from "@/components/RepoInput";
 import BranchFilter from "@/components/BranchFilter";
-import { RepoGraph } from "@/lib/types";
+import TimelineScrubber from "@/components/TimelineScrubber";
+import { CommitData, BranchData, RepoGraph } from "@/lib/types";
+import { buildGraph } from "@/lib/dag";
 
 const Scene = dynamic(() => import("@/components/Scene"), { ssr: false });
 
+const MAX_WINDOW = 200;
+
 export default function Home() {
-  const [graph, setGraph] = useState<RepoGraph | null>(null);
+  const [allCommits, setAllCommits] = useState<CommitData[]>([]);
+  const [branches, setBranches] = useState<BranchData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [visibleBranches, setVisibleBranches] = useState<Set<string>>(new Set());
+  const [windowStart, setWindowStart] = useState(0);
+  const [windowEnd, setWindowEnd] = useState(0);
+
+  // Sort commits oldest-first for consistent ordering
+  const sortedCommits = useMemo(() => {
+    return [...allCommits].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  }, [allCommits]);
+
+  // Build full graph once (branch assignment needs all commits + branch tips)
+  const fullGraph: RepoGraph | null = useMemo(() => {
+    if (sortedCommits.length === 0 || branches.length === 0) return null;
+    return buildGraph(sortedCommits, branches);
+  }, [sortedCommits, branches]);
+
+  // Window into the full graph for rendering
+  const graph: RepoGraph | null = useMemo(() => {
+    if (!fullGraph) return null;
+    const windowNodes = fullGraph.nodes.slice(windowStart, windowEnd);
+    if (windowNodes.length === 0) return null;
+    const windowShas = new Set(windowNodes.map((n) => n.commit.sha));
+    const windowEdges = fullGraph.edges.filter(
+      (e) => windowShas.has(e.from) && windowShas.has(e.to)
+    );
+    return { nodes: windowNodes, edges: windowEdges, branches: fullGraph.branches };
+  }, [fullGraph, windowStart, windowEnd]);
+
+  const handleWindowChange = useCallback((start: number, end: number) => {
+    setWindowStart(start);
+    setWindowEnd(end);
+  }, []);
 
   const handleSubmit = useCallback(async (url: string) => {
     setLoading(true);
     setError(null);
-    setGraph(null);
+    setAllCommits([]);
+    setBranches([]);
+    setWindowStart(0);
+    setWindowEnd(0);
 
     try {
       const res = await fetch(`/api/repo?url=${encodeURIComponent(url)}`);
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to fetch repo");
 
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to fetch repo");
-      }
+      const commits: CommitData[] = data.commits;
+      const fetchedBranches: BranchData[] = data.branches;
 
-      setGraph(data as RepoGraph);
-      setVisibleBranches(new Set(data.branches));
+      setAllCommits(commits);
+      setBranches(fetchedBranches);
+
+      // Set initial window: pinned to right (most recent), up to 100 wide
+      const sorted = [...commits].sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      );
+      const total = sorted.length;
+      const wSize = Math.min(total, 100);
+      setWindowStart(total - wSize);
+      setWindowEnd(total);
+
+      setVisibleBranches(new Set(fetchedBranches.map((b) => b.name)));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -52,6 +103,8 @@ export default function Home() {
     () => graph?.nodes.filter((n) => visibleBranches.has(n.branch)).length ?? 0,
     [graph, visibleBranches]
   );
+
+  const showScene = graph && !loading;
 
   return (
     <div className="h-screen w-screen bg-neutral-100 text-neutral-900 flex flex-col overflow-hidden">
@@ -110,7 +163,7 @@ export default function Home() {
         )}
 
         {/* 3D Scene */}
-        {graph && !loading && (
+        {showScene && (
           <>
             <Scene graph={graph} visibleBranches={visibleBranches} />
 
@@ -126,7 +179,20 @@ export default function Home() {
             {/* Stats */}
             <div className="absolute bottom-4 left-4 text-xs text-neutral-400 font-mono">
               {nodeCount} commits &middot; {graph.branches.length} branches
+              {sortedCommits.length > windowEnd - windowStart && (
+                <span> &middot; {sortedCommits.length} total fetched</span>
+              )}
             </div>
+
+            {/* Timeline Scrubber */}
+            <TimelineScrubber
+              totalCommits={sortedCommits.length}
+              windowStart={windowStart}
+              windowEnd={windowEnd}
+              maxWindow={MAX_WINDOW}
+              backfilling={false}
+              onWindowChange={handleWindowChange}
+            />
           </>
         )}
       </main>

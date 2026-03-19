@@ -63,18 +63,18 @@ export async function fetchRepoData(
 ): Promise<{ commits: CommitData[]; branches: BranchData[] }> {
   const branches = await fetchBranches(owner, repo);
 
-  // Fetch commits for each branch, deduplicate by SHA
-  const commitMap = new Map<string, CommitData>();
-  const branchCommits = new Map<string, Set<string>>();
+  // Fetch commits for all branches in parallel, deduplicate by SHA
+  const results = await Promise.all(
+    branches.map((branch) =>
+      fetchCommitsForBranch(owner, repo, branch.name)
+    )
+  );
 
-  for (const branch of branches) {
-    const commits = await fetchCommitsForBranch(owner, repo, branch.name);
-    const shaSet = new Set<string>();
+  const commitMap = new Map<string, CommitData>();
+  for (const commits of results) {
     for (const commit of commits) {
       commitMap.set(commit.sha, commit);
-      shaSet.add(commit.sha);
     }
-    branchCommits.set(branch.name, shaSet);
   }
 
   return {

@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { fetchRepoData, parseRepoUrl } from "@/lib/github";
-import { buildGraph } from "@/lib/dag";
 
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
@@ -19,8 +18,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const { commits, branches } = await fetchRepoData(parsed.owner, parsed.repo);
-    const graph = buildGraph(commits, branches);
-    return NextResponse.json(graph);
+    return NextResponse.json({ commits, branches });
   } catch (err: unknown) {
     const message =
       err instanceof Error ? err.message : "Failed to fetch repo data";
